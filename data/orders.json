@@ -1,0 +1,225 @@
+[
+  {
+    "order_id": "SL-1001",
+    "customer_name": "Emma Carter",
+    "customer_email": "emma.carter@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-10-12",
+    "shipped_date": "2026-10-13",
+    "delivered_date": "2026-10-20",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100101",
+    "items": [
+      {"name": "Wireless Mouse", "quantity": 1, "unit_price": 24.99},
+      {"name": "Cotton Hoodie (M)", "quantity": 1, "unit_price": 44.99}
+    ],
+    "shipping_cost": 0.0,
+    "total": 69.98,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1002",
+    "customer_name": "Liam Brooks",
+    "customer_email": "liam.brooks@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-09-17",
+    "shipped_date": "2026-09-18",
+    "delivered_date": "2026-09-25",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100202",
+    "items": [
+      {"name": "LED Desk Lamp", "quantity": 1, "unit_price": 34.99},
+      {"name": "Braided USB-C Cable 2m", "quantity": 1, "unit_price": 9.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 49.97,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1003",
+    "customer_name": "Noah Patel",
+    "customer_email": "noah.patel@example.com",
+    "country": "US",
+    "status": "Shipped",
+    "order_date": "2026-10-22",
+    "shipped_date": "2026-10-23",
+    "delivered_date": null,
+    "estimated_delivery": "2026-10-28",
+    "shipping_method": "express",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100303",
+    "items": [
+      {"name": "Laptop Stand", "quantity": 1, "unit_price": 31.99}
+    ],
+    "shipping_cost": 12.99,
+    "total": 44.98,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1004",
+    "customer_name": "Olivia Reed",
+    "customer_email": "olivia.reed@example.com",
+    "country": "US",
+    "status": "Processing",
+    "order_date": "2026-10-24",
+    "shipped_date": null,
+    "delivered_date": null,
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": null,
+    "tracking_number": null,
+    "items": [
+      {"name": "Ceramic Mug Set (4 pcs)", "quantity": 2, "unit_price": 29.99}
+    ],
+    "shipping_cost": 0.0,
+    "total": 59.98,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1005",
+    "customer_name": "Ethan Walker",
+    "customer_email": "ethan.walker@example.com",
+    "country": "US",
+    "status": "Cancelled",
+    "order_date": "2026-10-19",
+    "shipped_date": null,
+    "delivered_date": null,
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": null,
+    "tracking_number": null,
+    "items": [
+      {"name": "Phone Case", "quantity": 2, "unit_price": 14.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 34.97,
+    "notes": "Cancelled by the customer on 2026-10-19 while the order was Processing. Full refund of $34.97 sent to the original payment method."
+  },
+  {
+    "order_id": "SL-1006",
+    "customer_name": "Sophia Nguyen",
+    "customer_email": "sophia.nguyen@example.com",
+    "country": "US",
+    "status": "Returned",
+    "order_date": "2026-09-28",
+    "shipped_date": "2026-09-29",
+    "delivered_date": "2026-10-06",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100606",
+    "items": [
+      {"name": "Mini Bluetooth Speaker", "quantity": 1, "unit_price": 39.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 44.98,
+    "notes": "Return received 2026-10-15 (customer changed their mind). Refund of $35.00 ($39.99 item price minus the $4.99 return label fee) sent to the original payment method on 2026-10-22."
+  },
+  {
+    "order_id": "SL-1007",
+    "customer_name": "Lucas Martin",
+    "customer_email": "lucas.martin@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-09-29",
+    "shipped_date": "2026-09-30",
+    "delivered_date": "2026-10-07",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100707",
+    "items": [
+      {"name": "USB-C Fast Charger 30W", "quantity": 2, "unit_price": 19.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 44.97,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1008",
+    "customer_name": "Ava Thompson",
+    "customer_email": "ava.thompson@example.com",
+    "country": "CA",
+    "status": "Shipped",
+    "order_date": "2026-09-30",
+    "shipped_date": "2026-10-01",
+    "delivered_date": null,
+    "estimated_delivery": "2026-10-16",
+    "shipping_method": "standard",
+    "carrier": "NorthLine",
+    "tracking_number": "NL200200808",
+    "items": [
+      {"name": "LED Desk Lamp", "quantity": 1, "unit_price": 34.99},
+      {"name": "Phone Case", "quantity": 1, "unit_price": 14.99}
+    ],
+    "shipping_cost": 9.99,
+    "total": 59.97,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1009",
+    "customer_name": "Mason Clarke",
+    "customer_email": "mason.clarke@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-10-14",
+    "shipped_date": "2026-10-15",
+    "delivered_date": "2026-10-22",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100100909",
+    "items": [
+      {"name": "In-Ear Earbuds Pro", "quantity": 1, "unit_price": 49.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 54.98,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1010",
+    "customer_name": "Isabella Rossi",
+    "customer_email": "isabella.rossi@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-02-02",
+    "shipped_date": "2026-02-03",
+    "delivered_date": "2026-02-10",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100101010",
+    "items": [
+      {"name": "Mini Bluetooth Speaker", "quantity": 1, "unit_price": 39.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 44.98,
+    "notes": ""
+  },
+  {
+    "order_id": "SL-1011",
+    "customer_name": "James O'Neil",
+    "customer_email": "james.oneil@example.com",
+    "country": "US",
+    "status": "Delivered",
+    "order_date": "2026-10-07",
+    "shipped_date": "2026-10-08",
+    "delivered_date": "2026-10-16",
+    "estimated_delivery": null,
+    "shipping_method": "standard",
+    "carrier": "SwiftPost",
+    "tracking_number": "SP100101111",
+    "items": [
+      {"name": "Custom-Engraved Steel Water Bottle", "quantity": 1, "unit_price": 27.99}
+    ],
+    "shipping_cost": 4.99,
+    "total": 32.98,
+    "notes": ""
+  }
+]
