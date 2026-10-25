@@ -13,3 +13,12 @@ hands over to a human when needed.
 3. Install packages: `pip install -r requirements.txt`
 4. Copy `.env.example` to `.env` and add your API key and model name
 5. Test it: `python try_llm.py`
+
+## Data
+
+The assistant works with fictional ShopLite data in the `data/` folder:
+
+- `data/docs/`: returns policy, shipping policy, payments and refunds, and FAQ (Markdown)
+- `data/orders.json`: 11 fake orders covering different situations (late package, expired return window, warranty and so on)
+
+Check that the data is consistent: `python check_data.py`
