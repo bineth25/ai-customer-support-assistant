@@ -22,3 +22,10 @@ The assistant works with fictional ShopLite data in the `data/` folder:
 - `data/orders.json`: 11 fake orders covering different situations (late package, expired return window, warranty and so on)
 
 Check that the data is consistent: `python check_data.py`
+
+## Search (RAG retrieval)
+
+Documents are cut into chunks (one per `##` section), embedded, and stored in a local Chroma database. A question is embedded the same way and the closest chunks are returned.
+
+1. Build the index: `python build_index.py`
+2. Try a search: `python try_search.py "How long do I have to return an item?"`
