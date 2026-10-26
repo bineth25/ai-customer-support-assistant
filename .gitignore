@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local vector database (rebuilt with build_index.py)
+chroma_db/
