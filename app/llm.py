@@ -18,7 +18,7 @@ def ask_llm(messages, temperature=0.2):
     if usage:
         print(
             f"[LLM] {seconds}s | prompt tokens: {usage.prompt_tokens}"
-            f"| answer tikens: {usage.completion_tokens}"
+            f"| answer tokens: {usage.completion_tokens}"
         )
     else:
         print(f"[LLM] {seconds}s")
