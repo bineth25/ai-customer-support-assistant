@@ -3,7 +3,7 @@ from app.llm import ask_llm
 from app.prompts import SYSTEM_PROMPT, NOT_FOUND_MESSAGE
 from app.vectorstore import search
 
-MAX_DISTANCE = 1.0
+MAX_DISTANCE = 1.5
 TOP_K = 3
 
 def build_context(hits):
