@@ -29,3 +29,10 @@ Documents are cut into chunks (one per `##` section), embedded, and stored in a 
 
 1. Build the index: `python build_index.py`
 2. Try a search: `python try_search.py "How long do I have to return an item?"`
+
+## Ask questions (RAG)
+
+Answers come only from the documents, with the source section named. If the documents do not cover a question, the assistant says so instead of guessing.
+
+- Ask one question: `python try_rag.py "How long do I have to return an item?"`
+- Run the automatic checks: `python check_rag.py`
