@@ -221,3 +221,6 @@ __marimo__/
 
 # Local vector database (rebuilt with build_index.py)
 chroma_db/
+
+# Support tickets created while testing
+data/tickets.json
