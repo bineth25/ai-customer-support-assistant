@@ -32,9 +32,9 @@ check("SL-1007 delivered 18 days ago: 3 days left",
       r["days_since_delivery"] == 18 and r["return_days_left"] == 3)
 
 r = tools.lookup_order("SL-1010", "isabella.rossi@example.com")
-check("SL-1010 delivered 8 months ago: window closed but under warranty",
-      r["return_window_open"] is False and r["under_warranty"] is True
-      and r["warranty_end"] == "2027-02-10")
+check("SL-1010 delivered 8 months ago: window closed but warranty period open",
+      r["return_window_open"] is False and r["warranty_period_open"] is True
+      and r["warranty_period_end"] == "2027-02-10")
 
 r = tools.lookup_order("SL-1003", "noah.patel@example.com")
 check("SL-1003 shipped, estimate still in the future: not late",
