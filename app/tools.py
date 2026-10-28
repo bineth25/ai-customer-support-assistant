@@ -1,5 +1,5 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ORDERS_FILE = Path("data/orders.json")
@@ -14,6 +14,44 @@ RETURN_WINDOW_DAYS = 21
 WARRANTY_MONTHS = 12
 LATE_AFTER_BUSINESS_DAYS = 5
 
+
+
+TICKETS_FILE = Path("data/tickets.json")
+TICKET_CATEGORIES = ["late_package", "damaged_item", "refund_issue", "warranty", "other"]
+
+
+def create_ticket(category, summary, order_id=None, customer_email=None):
+    """Save a support ticket for a human agent to handle."""
+    if category not in TICKET_CATEGORIES:
+        return {
+            "error": "INVALID_CATEGORY",
+            "message": f"category must be one of {TICKET_CATEGORIES}",
+        }
+    summary = str(summary).strip()
+    if not summary:
+        return {"error": "EMPTY_SUMMARY", "message": "summary cannot be empty."}
+
+    tickets = []
+    if TICKETS_FILE.exists():
+        tickets = json.loads(TICKETS_FILE.read_text(encoding="utf-8"))
+
+    ticket = {
+        "ticket_id": f"TK-{len(tickets) + 1:04d}",
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "status": "open",
+        "category": category,
+        "summary": summary[:500],
+        "order_id": str(order_id).strip().upper() if order_id else None,
+        "customer_email": str(customer_email).strip().lower() if customer_email else None,
+    }
+    tickets.append(ticket)
+    TICKETS_FILE.write_text(json.dumps(tickets, indent=2), encoding="utf-8")
+
+    return {
+        "ticket_id": ticket["ticket_id"],
+        "status": "open",
+        "message": "Ticket created. A human agent will follow up by email.",
+    }
 
 def add_months(start, months):
     """Return the same day N months later (step back for shorter months)."""
