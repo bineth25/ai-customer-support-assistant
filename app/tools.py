@@ -136,3 +136,84 @@ def lookup_order(order_id, email):
         "error": "ORDER_NOT_FOUND",
         "message": "No order matches that order number and email.",
     }
+
+
+
+# What the model sees: a name, a description, and the arguments each tool takes.
+TOOL_DEFINITIONS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "lookup_order",
+            "description": (
+                "Look up a ShopLite order: its status, dates, items, total, and "
+                "whether it can still be returned. Needs BOTH the order number and "
+                "the email used for the order. If the customer has not given both, "
+                "ask for the missing one instead of calling this tool. Never guess."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "order_id": {
+                        "type": "string",
+                        "description": "Order number, like SL-1001",
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Email address used for the order",
+                    },
+                },
+                "required": ["order_id", "email"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_ticket",
+            "description": (
+                "Create a support ticket so a human agent follows up. Use it when "
+                "the customer has a problem the assistant cannot solve itself, such "
+                "as a package that is late enough to report, a damaged item, or a "
+                "refund problem."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "enum": TICKET_CATEGORIES},
+                    "summary": {
+                        "type": "string",
+                        "description": "One or two sentences describing the problem",
+                    },
+                    "order_id": {"type": "string", "description": "Order number, if known"},
+                    "customer_email": {"type": "string", "description": "Customer email, if known"},
+                },
+                "required": ["category", "summary"],
+            },
+        },
+    },
+]
+
+TOOL_FUNCTIONS = {
+    "lookup_order": lookup_order,
+    "create_ticket": create_ticket,
+}
+
+
+def run_tool(name, arguments_json):
+    """Run a tool the model asked for. Always returns a JSON string, never crashes."""
+    function = TOOL_FUNCTIONS.get(name)
+    if function is None:
+        return json.dumps({"error": "UNKNOWN_TOOL", "message": f"No tool named {name}."})
+
+    try:
+        arguments = json.loads(arguments_json or "{}")
+    except json.JSONDecodeError:
+        return json.dumps({"error": "BAD_ARGUMENTS", "message": "Arguments were not valid JSON."})
+
+    try:
+        result = function(**arguments)
+    except TypeError as e:  # missing or unexpected argument
+        return json.dumps({"error": "BAD_ARGUMENTS", "message": str(e)})
+
+    return json.dumps(result)
