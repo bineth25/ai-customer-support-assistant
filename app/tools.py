@@ -14,11 +14,8 @@ RETURN_WINDOW_DAYS = 21
 WARRANTY_MONTHS = 12
 LATE_AFTER_BUSINESS_DAYS = 5
 
-
-
 TICKETS_FILE = Path("data/tickets.json")
 TICKET_CATEGORIES = ["late_package", "damaged_item", "refund_issue", "warranty", "other"]
-
 
 def create_ticket(category, summary, order_id=None, customer_email=None):
     """Save a support ticket for a human agent to handle."""
