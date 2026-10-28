@@ -47,3 +47,10 @@ The assistant can call two tools. The model decides when, the code runs them:
 - Test the tools without an LLM: `python check_tools.py`
 - Ask a question: `python try_tools.py "Where is my order SL-1003? My email is noah.patel@example.com"`
 - Run the tool-calling checks: `python check_tool_agent.py`
+
+## Chat assistant (documents, tools and memory)
+
+One assistant answers from the policy documents, looks up orders and creates tickets. It remembers the conversation (the last 12 messages) and decides by itself which tool a question needs.
+
+- Talk to it: `python chat.py`
+- Run the multi-turn checks: `python check_conversations.py`
