@@ -36,3 +36,14 @@ Answers come only from the documents, with the source section named. If the docu
 
 - Ask one question: `python try_rag.py "How long do I have to return an item?"`
 - Run the automatic checks: `python check_rag.py`
+
+## Tools (order lookup and tickets)
+
+The assistant can call two tools. The model decides when, the code runs them:
+
+- `lookup_order`: needs the order number **and** the customer's email. Return deadlines, warranty and delays are computed in code, not by the model.
+- `create_ticket`: saves a support ticket for a human (to `data/tickets.json`, not committed).
+
+- Test the tools without an LLM: `python check_tools.py`
+- Ask a question: `python try_tools.py "Where is my order SL-1003? My email is noah.patel@example.com"`
+- Run the tool-calling checks: `python check_tool_agent.py`
