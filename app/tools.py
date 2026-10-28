@@ -107,8 +107,8 @@ def describe_order(order):
         result["return_deadline"] = deadline.isoformat()
         result["return_window_open"] = TODAY <= deadline  # time only, not item type
         result["return_days_left"] = max((deadline - TODAY).days, 0)
-        result["warranty_end"] = warranty_end.isoformat()
-        result["under_warranty"] = TODAY <= warranty_end
+        result["warranty_period_end"] = warranty_end.isoformat()
+        result["warranty_period_open"] = TODAY <= warranty_end  # time only, not item type
     elif status == "Shipped":
         estimated = date.fromisoformat(order["estimated_delivery"])
         late_days = business_days_after(estimated, TODAY)
