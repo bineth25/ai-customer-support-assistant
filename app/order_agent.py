@@ -1,10 +1,27 @@
 import json
+import re
 from app.llm import ask_llm_with_tools
 from app.prompts import TOOL_SYSTEM_PROMPT, TOOL_FAILED_MESSAGE
 from app.tools import TODAY, TOOL_DEFINITIONS, run_tool
 
 # Safety limit: stop if the model keeps asking for tools without finishing
 MAX_ROUNDS = 5
+
+
+def fix_ticket_number(answer, tools_used):
+    """The model can garble numbers when it copies them. If a ticket was created,
+    make sure the answer shows the real ticket number from our own code."""
+    ticket_ids = [
+        t["result"]["ticket_id"]
+        for t in tools_used
+        if t["name"] == "create_ticket" and "ticket_id" in t["result"]
+    ]
+    if len(ticket_ids) != 1:
+        return answer
+    real_id = ticket_ids[0]
+    if re.search(r"TK-\d+", answer):
+        return re.sub(r"TK-\d+", real_id, answer)
+    return f"{answer} Your ticket number is {real_id}."
 
 
 def answer_with_tools(question):
@@ -23,6 +40,7 @@ def answer_with_tools(question):
             answer = (message.content or "").strip()
             if not answer:
                 return {"answer": TOOL_FAILED_MESSAGE, "tools_used": tools_used}
+            answer = fix_ticket_number(answer, tools_used)
             return {"answer": answer, "tools_used": tools_used}
 
         # Keep the model's request in the conversation. model_dump keeps extra
