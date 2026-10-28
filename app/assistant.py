@@ -14,6 +14,9 @@ MAX_HISTORY_MESSAGES = 12  # memory: the last 6 question/answer pairs
 # Citations look like [returns_policy-1] or [returns_policy-1, faq-3]
 CITATION = r"\[[a-z_]+-\d+(?:\s*,\s*[a-z_]+-\d+)*\]"
 
+# The model sometimes writes an order number in brackets, like [SL-1001]
+ORDER_MARKER = r"\[SL-\d{4}\]"
+
 
 def split_citations(text, known_sources):
     """Turn [chunk-id] markers into a source list and remove them from the text."""
@@ -23,7 +26,11 @@ def split_citations(text, known_sources):
             source = known_sources.get(chunk_id)  # unknown ids are ignored
             if source and source not in sources:
                 sources.append(source)
-    clean_text = re.sub(r"\s*" + CITATION, "", text).strip()
+    # A marker stuck to the next word ("[x]our") must leave a space, not glue the words
+    clean_text = re.sub(r"\s*" + CITATION + r"(?=\w)", " ", text)
+    clean_text = re.sub(r"\s*" + CITATION, "", clean_text)
+    clean_text = re.sub(r"\s*" + ORDER_MARKER + r"(?=\w)", " ", clean_text)
+    clean_text = re.sub(r"\s*" + ORDER_MARKER, "", clean_text).strip()
     return clean_text, sources
 
 
