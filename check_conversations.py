@@ -72,8 +72,28 @@ SCENARIOS = [
                 "My email is noah.patel@example.com",
          "must_call": ["lookup_order"], "must_not_call": ["create_ticket"]},
     ]),
+    ("Handover: customer asks for a human", [
+        {"say": "I want to talk to a human, please.", "handoff": True, "any_of": ["TK-"],
+         "must_not_call": ["lookup_order", "search_policies", "create_ticket"]},
+        {"say": "Where is my order?", "handoff": True, "any_of": ["already"]},
+    ]),
+    ("Handover: angry customer", [
+        {"say": "This is absolutely ridiculous! Your bot is useless and I am sick of being ignored. "
+                "Fix my problem NOW or I am done with ShopLite!",
+         "handoff": True, "any_of": ["TK-"]},
+    ]),
+    ("No handover for ordinary questions", [
+        {"say": "What are the hours of human support?", "handoff": False,
+         "must_call": ["search_policies"], "any_of": ["9"]},
+        {"say": "My order SL-1003 is a bit late, where is it? My email is noah.patel@example.com",
+         "handoff": False, "must_call": ["lookup_order"]},
+    ]),
+    ("Handover: stuck three times in a row", [
+        {"say": "Do you offer price matching?", "handoff": False, "found": False},
+        {"say": "Do you sell gift cards?", "handoff": False, "found": False},
+        {"say": "How many loyalty points do I earn per dollar?", "handoff": True},
+    ]),
 ]
-
 
 def search_queries(tools_used):
     queries = []
@@ -116,6 +136,8 @@ def check_turn(turn, result):
 
     if "found" in turn and result["found"] != turn["found"]:
         problems.append(f"found={result['found']}, expected {turn['found']}")
+    if "handoff" in turn and result.get("handoff", False) != turn["handoff"]:
+        problems.append(f"handoff={result.get('handoff')}, expected {turn['handoff']}")
     if "source" in turn and not any(turn["source"] in s for s in result["sources"]):
         problems.append(f"no shown source contains '{turn['source']}': {result['sources']}")
     if LEFTOVER_MARKER.search(answer):
@@ -143,12 +165,15 @@ for scenario_name, turns in SCENARIOS:
             passed += 1
         time.sleep(5)  # be gentle with free-tier rate limits
 
-# Only the SL-1008 conversation should have created a ticket
+# Only the SL-1008 conversation should have created a late_package ticket
+# (handovers create tickets too, but with the category human_handoff)
 saved = json.loads(tools.TICKETS_FILE.read_text(encoding="utf-8")) if tools.TICKETS_FILE.exists() else []
-ticket_ok = len(saved) == 1 and saved[0]["order_id"] == "SL-1008" and saved[0]["category"] == "late_package"
+late_tickets = [t for t in saved if t["category"] == "late_package"]
+ticket_ok = len(late_tickets) == 1 and late_tickets[0]["order_id"] == "SL-1008"
 total += 1
 passed += 1 if ticket_ok else 0
-print(f"\n{'PASS' if ticket_ok else 'FAIL'} | exactly one late_package ticket, for SL-1008 (found {len(saved)})")
+print(f"\n{'PASS' if ticket_ok else 'FAIL'} | exactly one late_package ticket, for SL-1008 (found {len(late_tickets)})")
 
 print(f"\n{passed} of {total} checks passed")
 sys.exit(0 if passed == total else 1)
+
