@@ -17,17 +17,9 @@ LATE_AFTER_BUSINESS_DAYS = 5
 TICKETS_FILE = Path("data/tickets.json")
 TICKET_CATEGORIES = ["late_package", "damaged_item", "refund_issue", "warranty", "other"]
 
-def create_ticket(category, summary, order_id=None, customer_email=None):
-    """Save a support ticket for a human agent to handle."""
-    if category not in TICKET_CATEGORIES:
-        return {
-            "error": "INVALID_CATEGORY",
-            "message": f"category must be one of {TICKET_CATEGORIES}",
-        }
-    summary = str(summary).strip()
-    if not summary:
-        return {"error": "EMPTY_SUMMARY", "message": "summary cannot be empty."}
-
+def save_ticket(category, summary, order_id=None, customer_email=None, details=None):
+    """Write one ticket to the tickets file and return it.
+    Callers check their inputs first: this function does not validate."""
     tickets = []
     if TICKETS_FILE.exists():
         tickets = json.loads(TICKETS_FILE.read_text(encoding="utf-8"))
@@ -37,13 +29,29 @@ def create_ticket(category, summary, order_id=None, customer_email=None):
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "status": "open",
         "category": category,
-        "summary": summary[:500],
+        "summary": str(summary).strip()[:500],
         "order_id": str(order_id).strip().upper() if order_id else None,
         "customer_email": str(customer_email).strip().lower() if customer_email else None,
     }
+    if details:
+        ticket["details"] = details
     tickets.append(ticket)
     TICKETS_FILE.write_text(json.dumps(tickets, indent=2), encoding="utf-8")
+    return ticket
 
+
+def create_ticket(category, summary, order_id=None, customer_email=None):
+    """The ticket tool the model can call. Only the model-facing categories are allowed."""
+    if category not in TICKET_CATEGORIES:
+        return {
+            "error": "INVALID_CATEGORY",
+            "message": f"category must be one of {TICKET_CATEGORIES}",
+        }
+    summary = str(summary).strip()
+    if not summary:
+        return {"error": "EMPTY_SUMMARY", "message": "summary cannot be empty."}
+
+    ticket = save_ticket(category, summary, order_id, customer_email)
     return {
         "ticket_id": ticket["ticket_id"],
         "status": "open",
