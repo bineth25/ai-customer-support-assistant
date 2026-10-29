@@ -20,5 +20,5 @@ while True:
 
     result = assistant.reply(message)
     print(f"\nAssistant: {result['answer']}")
-    if result["sources"]:
-        print("Sources: " + "; ".join(result["sources"]))
+    if result.get("handoff"):
+        print("(This conversation was passed to a human agent. Type 'new' to start again.)")
