@@ -1,5 +1,11 @@
 import json
 import re
+from app.handoff import (
+    already_handed_over_message,
+    create_handoff_ticket,
+    detect_handoff_reason,
+    handoff_message,
+)
 from app.llm import ask_llm_with_tools
 from app.order_agent import fix_ticket_number
 from app.policy_search import SEARCH_TOOL_DEFINITION, run_search_tool
@@ -10,6 +16,7 @@ ALL_TOOLS = TOOL_DEFINITIONS + [SEARCH_TOOL_DEFINITION]
 
 MAX_ROUNDS = 6             # tool rounds allowed for one customer message
 MAX_HISTORY_MESSAGES = 12  # memory: the last 6 question/answer pairs
+MAX_FAILS_IN_A_ROW = 3     # after this many unanswered messages in a row, hand over
 
 # Citations look like [returns_policy-1] or [returns_policy-1, faq-3]
 CITATION = r"\[[a-z_]+-\d+(?:\s*,\s*[a-z_]+-\d+)*\]"
@@ -38,12 +45,44 @@ class Assistant:
     def __init__(self):
         # Memory: only plain user and assistant text, no tool requests or results
         self.history = []
+        self.fail_streak = 0        # unanswered messages in a row
+        self.handoff_ticket = None  # set once the conversation was passed to a human
 
     def reset(self):
         self.history = []
+        self.fail_streak = 0
+        self.handoff_ticket = None
+
+    def hand_over(self, user_message, reason, tools_used=None):
+        """Pass the conversation to a human: save a ticket with the transcript."""
+        transcript = self.history[-10:] + [{"role": "user", "content": user_message}]
+        ticket = create_handoff_ticket(reason, transcript)
+        answer = handoff_message(reason, ticket)
+
+        self.history.append({"role": "user", "content": user_message})
+        self.history.append({"role": "assistant", "content": answer})
+        self.handoff_ticket = ticket
+        return {
+            "answer": answer, "sources": [], "found": False, "handoff": True,
+            "ticket_id": ticket["ticket_id"], "tools_used": tools_used or [],
+        }
 
     def reply(self, user_message):
         """Answer one customer message, using memory and tools."""
+        # 1. Already handed over: the bot stays out of it (no LLM call)
+        if self.handoff_ticket:
+            return {
+                "answer": already_handed_over_message(self.handoff_ticket["ticket_id"]),
+                "sources": [], "found": False, "handoff": True,
+                "ticket_id": self.handoff_ticket["ticket_id"], "tools_used": [],
+            }
+
+        # 2. Rules in code come before the model: explicit requests, legal, fraud, safety
+        reason = detect_handoff_reason(user_message)
+        if reason:
+            return self.hand_over(user_message, reason)
+
+        # 3. Normal path: the model answers, using memory and tools
         system = {"role": "system", "content": ASSISTANT_SYSTEM_PROMPT.format(today=TODAY.isoformat())}
         messages = [system] + self.history[-MAX_HISTORY_MESSAGES:]
         messages.append({"role": "user", "content": user_message})
@@ -59,9 +98,17 @@ class Assistant:
                 if not text:
                     break  # an empty answer counts as a failure
 
+                # The model says the customer needs a human (angry, unsolved problem)
+                if "HANDOFF" in text:
+                    return self.hand_over(user_message, "upset", tools_used)
+
                 if "NOT_FOUND" in text:
+                    self.fail_streak += 1
+                    if self.fail_streak >= MAX_FAILS_IN_A_ROW:
+                        return self.hand_over(user_message, "stuck", tools_used)
                     answer, sources, found = NOT_FOUND_MESSAGE, [], False
                 else:
+                    self.fail_streak = 0
                     text = fix_ticket_number(text, tools_used)
                     answer, sources = split_citations(text, known_sources)
                     found = True
@@ -69,7 +116,10 @@ class Assistant:
                 # Remember this exchange for the next message
                 self.history.append({"role": "user", "content": user_message})
                 self.history.append({"role": "assistant", "content": answer})
-                return {"answer": answer, "sources": sources, "found": found, "tools_used": tools_used}
+                return {
+                    "answer": answer, "sources": sources, "found": found,
+                    "handoff": False, "tools_used": tools_used,
+                }
 
             # The model asked for tools: keep its request, run them, send back the results
             messages.append(message.model_dump(exclude_none=True))
@@ -91,5 +141,11 @@ class Assistant:
 
                 messages.append({"role": "tool", "tool_call_id": call.id, "content": result})
 
-        # Failure: the exchange is NOT added to memory
-        return {"answer": TOOL_FAILED_MESSAGE, "sources": [], "found": False, "tools_used": tools_used}
+        # Failure: the exchange is NOT added to memory, but it counts toward "stuck"
+        self.fail_streak += 1
+        if self.fail_streak >= MAX_FAILS_IN_A_ROW:
+            return self.hand_over(user_message, "stuck", tools_used)
+        return {
+            "answer": TOOL_FAILED_MESSAGE, "sources": [], "found": False,
+            "handoff": False, "tools_used": tools_used,
+        }
