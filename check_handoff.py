@@ -134,5 +134,42 @@ check("create_ticket tool rejects the category human_handoff",
 enum = tools.TOOL_DEFINITIONS[1]["function"]["parameters"]["properties"]["category"]["enum"]
 check("the model is not offered human_handoff as a ticket category", "human_handoff" not in enum)
 
+# --- 8. Provider problems (timeouts, rate limits) must not crash or hand over ---
+import openai
+import app.llm as llm_module
+from app.llm import LLMUnavailable
+
+
+def broken_llm(messages, tools, temperature=0.2):
+    raise LLMUnavailable("provider unreachable")
+
+
+assistant_module.ask_llm_with_tools = broken_llm
+f = Assistant()
+tickets_before = len(saved_tickets())
+results = [f.reply("Where is my package?") for _ in range(4)]
+check("API error: the customer gets a friendly message instead of a crash",
+      all(r.get("error") is True and "technical problem" in r["answer"] for r in results))
+check("API error: nothing is remembered and it never counts as 'stuck'",
+      f.history == [] and all(r["handoff"] is False for r in results)
+      and len(saved_tickets()) == tickets_before)
+
+
+class FakeProviderError(openai.OpenAIError):
+    pass
+
+
+def raising(**kwargs):
+    raise FakeProviderError("boom")
+
+
+llm_module.client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=raising)))
+try:
+    llm_module.ask_llm([{"role": "user", "content": "hi"}])
+    wrapped = False
+except LLMUnavailable:
+    wrapped = True
+check("llm.py: a library error becomes LLMUnavailable", wrapped)
+
 print(f"\n{len(failures)} check(s) failed" if failures else "\nAll handover checks passed.")
 sys.exit(1 if failures else 0)

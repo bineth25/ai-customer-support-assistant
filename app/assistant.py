@@ -6,10 +6,15 @@ from app.handoff import (
     detect_handoff_reason,
     handoff_message,
 )
-from app.llm import ask_llm_with_tools
+from app.llm import LLMUnavailable, ask_llm_with_tools
 from app.order_agent import fix_ticket_number
 from app.policy_search import SEARCH_TOOL_DEFINITION, run_search_tool
-from app.prompts import ASSISTANT_SYSTEM_PROMPT, NOT_FOUND_MESSAGE, TOOL_FAILED_MESSAGE
+from app.prompts import (
+    ASSISTANT_SYSTEM_PROMPT,
+    NOT_FOUND_MESSAGE,
+    TECH_PROBLEM_MESSAGE,
+    TOOL_FAILED_MESSAGE,
+)
 from app.tools import TODAY, TOOL_DEFINITIONS, run_tool
 
 ALL_TOOLS = TOOL_DEFINITIONS + [SEARCH_TOOL_DEFINITION]
@@ -91,7 +96,15 @@ class Assistant:
         known_sources = {}  # chunk id -> "file > section", for every chunk found this turn
 
         for _ in range(MAX_ROUNDS):
-            message = ask_llm_with_tools(messages, ALL_TOOLS)
+            try:
+                message = ask_llm_with_tools(messages, ALL_TOOLS)
+            except LLMUnavailable:
+                # The provider cannot be reached. Tell the customer, remember nothing, and
+                # do not count it as "stuck": a network problem is not a reason to hand over.
+                return {
+                    "answer": TECH_PROBLEM_MESSAGE, "sources": [], "found": False,
+                    "handoff": False, "error": True, "tools_used": tools_used,
+                }
 
             if not message.tool_calls:
                 text = (message.content or "").strip()
