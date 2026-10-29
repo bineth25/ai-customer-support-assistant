@@ -54,3 +54,14 @@ One assistant answers from the policy documents, looks up orders and creates tic
 
 - Talk to it: `python chat.py`
 - Run the multi-turn checks: `python check_conversations.py`
+
+## Human handover
+
+The assistant hands the conversation to a human agent when:
+- the customer asks for one, or mentions legal action, fraud or a safety problem (rules in code, no LLM call)
+- the customer is clearly angry (the model flags it)
+- three messages in a row could not be answered
+
+The agent gets a ticket with the conversation transcript. After a handover the bot stops answering.
+
+- Test the handover rules (no API needed): `python check_handoff.py`
