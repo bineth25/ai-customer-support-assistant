@@ -1,6 +1,7 @@
 import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
+from app.safety import clean_note
 
 ORDERS_FILE = Path("data/orders.json")
 
@@ -103,7 +104,7 @@ def describe_order(order):
         "items": order["items"],
         "shipping_cost": order["shipping_cost"],
         "total": order["total"],
-        "notes": order["notes"],
+        "notes": clean_note(order["notes"]),
     }
 
     status = order["status"]
