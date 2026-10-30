@@ -31,6 +31,7 @@ INTROS = {
     "sensitive": "This needs a human agent, so I'm passing your conversation to one.",
     "upset": "I'm sorry for the trouble. I'm passing your conversation to a human agent.",
     "stuck": "I'm sorry I haven't been able to help. I'm passing your conversation to a human agent.",
+    "verification": "I couldn't verify those order details, so I'm passing your conversation to a human agent.",
 }
 
 HOURS = "Human support is available Monday to Friday, 9 AM to 6 PM Eastern Time."
@@ -52,11 +53,15 @@ def create_handoff_ticket(reason, transcript):
     order_ids = re.findall(r"SL-\d{4}", customer_text, flags=re.IGNORECASE)
     emails = re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", customer_text)
 
+    # After failed order checks the typed email may belong to someone else,
+    # so it is never saved as the person to contact.
+    contact_email = None if reason == "verification" else (emails[-1] if emails else None)
+
     return save_ticket(
         "human_handoff",
         f"Handoff ({reason}). Last customer message: {customer_messages[-1]}",
         order_id=order_ids[-1] if order_ids else None,
-        customer_email=emails[-1] if emails else None,
+        customer_email=contact_email,
         details={"reason": reason, "transcript": transcript},
     )
 
