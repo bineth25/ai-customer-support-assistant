@@ -84,3 +84,38 @@ The assistant reads text it does not control (customer messages, order notes, po
 Tests: `python check_injection.py` (offline, 55 checks) and `python check_attacks.py` (13 attacks on the real model).
 
 Known limits: the counters are per conversation, so an attacker can start a new one (rate limiting belongs in the API, Part 9). Phrase lists and the copied-rules check catch obvious attacks, not every paraphrase.
+
+## Intent classifier vs LLM
+
+**Question:** can a small classic ML model replace the LLM for working out what a customer message is about?
+
+**Setup:** 7 intents (order status, returns, shipping, payments/refunds, general FAQ, human handoff, other). 168 labelled training messages and 56 held-out test messages that the model never learns from. The classifier is TF-IDF (words + letter pieces) with logistic regression; settings were chosen by cross-validation on the training data only. The LLM got the same label definitions and the same 56 messages.
+
+| | Classifier | LLM |
+|---|---|---|
+| Accuracy on the test set | 0.804 (45/56) | 0.982 (55/56) |
+| Macro F1 | 0.801 | 0.982 |
+| Time per message | 0.37 ms | 1.73 s |
+| Tokens per message | 0 | 235 |
+
+**Hybrid router** (use the classifier when its confidence is at least the threshold, otherwise ask the LLM):
+
+| Threshold | Accuracy | Messages sent to the LLM |
+|---|---|---|
+| 0.0 (classifier only) | 0.804 | 0 of 56 |
+| 0.5 | 0.946 | 16 of 56 |
+| 0.7 | 0.964 | 23 of 56 |
+| 0.9 | 0.982 | 47 of 56 |
+
+**What I learned**
+- The LLM understands wording it has never seen. 11 of the classifier's mistakes were things like "Germany", "SwiftPost", "locker" or "Google Pay", which are missing from 168 training messages.
+- The classifier knows when it is unsure: 8 of its 11 mistakes had confidence below 0.5. That is what makes a confidence threshold useful.
+- The learning curve was still rising at 100% of the training data, so more labelled messages would help (high variance, not high bias).
+- Some labels are debatable ("VAT included?", "gift card"), so a few points of difference are label noise.
+
+**Decision**
+- The LLM stays the brain of the assistant. It is clearly more accurate (98% vs 80%).
+- The classifier is not in the request path. The agent already picks its tools inside the same LLM call, so a separate intent step would add work instead of saving it.
+- Where the classifier does earn a place: a free intent label per message for monitoring (Part 12), a fallback when the LLM is rate-limited or down (the free tier allows only 15 requests per minute), and a hybrid router if traffic grows (threshold 0.7 keeps 96% accuracy with 41% of the LLM calls).
+
+**Limits:** only 56 test messages (one message = 1.8 points), and I wrote both the data and the labels. Real conversation logs would be a better test.
