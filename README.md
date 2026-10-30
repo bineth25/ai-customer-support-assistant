@@ -65,3 +65,22 @@ The assistant hands the conversation to a human agent when:
 The agent gets a ticket with the conversation transcript. After a handover the bot stops answering.
 
 - Test the handover rules (no API needed): `python check_handoff.py`
+
+## Security: prompt injection and abuse
+
+The assistant reads text it does not control (customer messages, order notes, policy text), so it is attacked on purpose and defended in layers. Rules that matter live in code, because a model can be talked out of a prompt rule.
+
+| Attack | Defence |
+|---|---|
+| "Ignore your rules", fake system tags, role-play | Prompt rules 11, 13, 14 (model) |
+| Extract the system prompt | Secret code in the prompt plus a copied-rules check on every answer (code) |
+| Invented refunds ("$500 approved") | Every dollar amount in an answer must exist in this turn's data (code) |
+| Other customers' orders | Order number and email must be typed by the customer in this conversation (code) |
+| Guessing emails | 3 failed lookups hand the conversation to a human; the typed email is not saved as a contact (code) |
+| Ticket spam | Max 2 tickets per conversation, only for orders looked up first (code) |
+| Hostile text in order notes (indirect injection) | Notes that look like instructions are hidden before the model sees them (code) |
+| Huge messages | Over 1,000 characters is not read (code) |
+
+Tests: `python check_injection.py` (offline, 55 checks) and `python check_attacks.py` (13 attacks on the real model).
+
+Known limits: the counters are per conversation, so an attacker can start a new one (rate limiting belongs in the API, Part 9). Phrase lists and the copied-rules check catch obvious attacks, not every paraphrase.
