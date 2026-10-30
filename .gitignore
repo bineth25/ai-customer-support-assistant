@@ -224,3 +224,5 @@ chroma_db/
 
 # Support tickets created while testing
 data/tickets.json
+
+models/
