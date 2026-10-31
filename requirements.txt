@@ -2,3 +2,6 @@ openai
 python-dotenv
 chromadb
 scikit-learn
+fastapi
+uvicorn
+httpx
