@@ -120,7 +120,7 @@ Known limits: the counters are per conversation, so an attacker can start a new 
 
 **Limits:** only 56 test messages (one message = 1.8 points), and I wrote both the data and the labels. Real conversation logs would be a better test.
 
-## Web API (Part 9)
+## Web API
 
 ```
 uvicorn app.api:app --reload      # then open http://127.0.0.1:8000/docs
