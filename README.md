@@ -119,3 +119,28 @@ Known limits: the counters are per conversation, so an attacker can start a new 
 - Where the classifier does earn a place: a free intent label per message for monitoring (Part 12), a fallback when the LLM is rate-limited or down (the free tier allows only 15 requests per minute), and a hybrid router if traffic grows (threshold 0.7 keeps 96% accuracy with 41% of the LLM calls).
 
 **Limits:** only 56 test messages (one message = 1.8 points), and I wrote both the data and the labels. Real conversation logs would be a better test.
+
+## Web API (Part 9)
+
+```
+uvicorn app.api:app --reload      # then open http://127.0.0.1:8000/docs
+```
+
+| Endpoint | What it does |
+|---|---|
+| `POST /chat` | `{"message": "...", "session_id": "..."}`. Leave `session_id` out to start a conversation. Returns the answer, sources, `found`, `handoff` and `ticket_id` |
+| `DELETE /sessions/{id}` | Ends a conversation |
+| `GET /health` | `ok` (200) when the knowledge base is loaded, otherwise `degraded` (503) |
+
+Status codes: 401 wrong or missing API key, 404 unknown or expired session, 422 invalid input, 429 too many requests (with `Retry-After`), 503 the LLM provider is unreachable.
+
+Settings in `.env` (all optional): `API_KEY` (clients must send `X-API-Key`), `RATE_LIMIT_PER_MINUTE` (default 20 per address).
+
+Design choices
+- One `Assistant` per session, kept in memory for 30 minutes of inactivity (max 500 sessions). One message at a time per conversation (lock), several conversations in parallel.
+- Endpoints are plain `def`, so FastAPI runs the blocking LLM calls in worker threads and the server stays responsive.
+- Ticket numbers are protected by a lock, tested with 60 parallel saves.
+
+Known limits: sessions and rate-limit counters live in one process's memory, so they are lost on restart and not shared between several server copies. Behind a proxy the rate limiter would see the proxy's address (fix: use the forwarded address, planned for deployment).
+
+Tests: `python check_api.py` (45 offline checks).
