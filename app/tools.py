@@ -1,4 +1,5 @@
 import json
+import threading
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from app.safety import clean_note
@@ -18,9 +19,19 @@ LATE_AFTER_BUSINESS_DAYS = 5
 TICKETS_FILE = Path("data/tickets.json")
 TICKET_CATEGORIES = ["late_package", "damaged_item", "refund_issue", "warranty", "other"]
 
+# Several customers can create tickets at the same moment once the assistant runs behind
+# a web server. The lock makes "read the file, add a ticket, write the file" one step.
+TICKETS_LOCK = threading.Lock()
+
+
 def save_ticket(category, summary, order_id=None, customer_email=None, details=None):
     """Write one ticket to the tickets file and return it.
     Callers check their inputs first: this function does not validate."""
+    with TICKETS_LOCK:
+        return _save_ticket(category, summary, order_id, customer_email, details)
+
+
+def _save_ticket(category, summary, order_id, customer_email, details):
     tickets = []
     if TICKETS_FILE.exists():
         tickets = json.loads(TICKETS_FILE.read_text(encoding="utf-8"))
